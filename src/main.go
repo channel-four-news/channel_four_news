@@ -1,32 +1,40 @@
 package main
 
 /* TODO
+ * While you're at it - make sure to nil out fields before
+   reading new data
  * Add an error view
  * Add an auto-update toggle
- * Instead of autistic regex, the board object should be used
- * Find an efficient way of caching the data.
+ * Find a way of caching the data.
  * Implement post/thread/board links
  * Rather than flat scrolling, scoll from post to post? XXX Is it worth? XXX
  */
 
 import (
     "fmt"
-    "time"
     "github.com/jroimartin/gocui"
 )
 
 var ui_state UIState
 
 type UIState struct {
-    CurrentBoard        string
-    DefaultBoard        string
+    Boards              BoardsState
+    Posts               PostsState
+    Threads             ThreadsState
     Initialized         bool
 }
 
+func (s *UIState) WaitUntilInitialized() {
+    s.Boards.WaitGroup.Wait()
+    s.Posts.WaitGroup.Wait()
+    s.Threads.WaitGroup.Wait()
+}
+
 func main() {
-    ui_state.DefaultBoard = "pol" // Eventually this will be read from a config file
-    ui_state.CurrentBoard = ui_state.DefaultBoard
-    ui_state.Initialized = false
+    var boards_mgr  BoardsMgr
+    var posts_mgr   PostsMgr
+    var threads_mgr ThreadsMgr
+
     g, err := gocui.NewGui(gocui.Output256)
 
     if err != nil {
@@ -37,33 +45,23 @@ func main() {
     defer g.Close()
 
     g.Cursor = true
-    g.SetManagerFunc(manager)
+
+    ui_state.Boards.WaitGroup.Add(1)
+    ui_state.Posts.WaitGroup.Add(1)
+    ui_state.Threads.WaitGroup.Add(1)
+
+    g.SetManager(boards_mgr, posts_mgr, threads_mgr)
 
     if err = key_binds(g); err != nil {
         fmt.Println(err)
     }
 
-    go func (g *gocui.Gui) {
-        for !ui_state.Initialized {
-            time.Sleep(1 * time.Second)
-        }
-        for {
-            g.Update(func(g *gocui.Gui) error {
-                err = _get_thread(g, false)
-                if err != nil {
-                    return err
-                }
-                return nil
-            })
-            if err != nil {
-                return
-            }
-            time.Sleep(1 * time.Second)
-        }
-    }(g)
+    go refresh_thread(g)
 
-    if err := g.MainLoop(); err != nil && err != gocui.ErrQuit {
+
+    err = g.MainLoop()
+
+    if err != nil && err != gocui.ErrQuit {
         fmt.Println(err)
-        return
     }
 }

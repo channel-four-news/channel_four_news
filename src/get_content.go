@@ -1,7 +1,6 @@
 package main
 
 import (
-    "regexp"
     "github.com/jroimartin/gocui"
 )
 
@@ -26,7 +25,7 @@ func _get_thread(g *gocui.Gui, rewind bool) error {
     }
 
     body_view.Clear()
-    PrintThread(body_view, thread, ui_state.CurrentBoard)
+    ui_state.Posts.Print(body_view, thread, ui_state.Boards.GetCurrentTitle())
 
     if rewind {
         body_view.SetOrigin(0, 0)
@@ -43,34 +42,26 @@ func get_thread(g *gocui.Gui, v *gocui.View) error {
     return _get_thread(g, true)
 }
 
-func get_board_name(line string) string {
-    reg := regexp.MustCompile(`"/([[:alnum:]]+)/`)
-    sub := reg.FindStringSubmatch(line)
-
-    if len(sub) == 2 {
-        return sub[1]
-    }
-    return ui_state.DefaultBoard
-}
-
 func get_board(g *gocui.Gui, v *gocui.View) error {
-    _, y := v.Cursor()
+    _, cy := v.Cursor()
+    _, oy := v.Origin()
+    y := oy + cy
 
-    board_line, err := v.Line(y)
+    board := ui_state.Boards.GetTitle(y)
+
+    ui_state.Boards.SetCurrentBoard(y)
+
+    err := display_board(g, board)
+
     if err != nil {
         return err
     }
 
-    board := get_board_name(board_line)
-    err = display_board(g, board)
-    if err != nil {
-        return err
-    }
     return nil
 }
 
 func update_board(g *gocui.Gui, v *gocui.View) error {
-    return display_board(g, ui_state.CurrentBoard)
+    return display_board(g, ui_state.Boards.GetCurrentTitle())
 }
 
 func display_board(g *gocui.Gui, board_name string) error {
@@ -81,10 +72,9 @@ func display_board(g *gocui.Gui, board_name string) error {
     }
 
     threads_view.Clear()
-    PrintThreads(threads_view, board_name)
+    ui_state.Threads.Print(threads_view, board_name)
     threads_view.SetOrigin(0, 0)
     threads_view.SetCursor(0, 0)
-    ui_state.CurrentBoard = board_name
     get_thread(g, threads_view)
     return nil
 }
