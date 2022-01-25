@@ -3,29 +3,14 @@ package main
 /* TODO
  * Add an error view
  * Add an auto-update toggle
- * Find a way of caching the data.
+ * Implement caching
  * Implement post/thread/board links
- * Rather than flat scrolling, scoll from post to post? XXX Is it worth? XXX
  */
 
 import (
     "fmt"
     "github.com/jroimartin/gocui"
 )
-
-var ui_state UIState
-
-type UIState struct {
-    Boards              BoardsState
-    Posts               PostsState
-    Threads             ThreadsState
-}
-
-func (s *UIState) WaitUntilInitialized() {
-    s.Boards.WaitGroup.Wait()
-    s.Posts.WaitGroup.Wait()
-    s.Threads.WaitGroup.Wait()
-}
 
 func main() {
     var boards_mgr  BoardsMgr
@@ -43,9 +28,7 @@ func main() {
 
     g.Cursor = true
 
-    ui_state.Boards.WaitGroup.Add(1)
-    ui_state.Posts.WaitGroup.Add(1)
-    ui_state.Threads.WaitGroup.Add(1)
+    ui_state.LockViews()
 
     g.SetManager(boards_mgr, posts_mgr, threads_mgr)
 
@@ -54,7 +37,6 @@ func main() {
     }
 
     go refresh_thread(g)
-
 
     err = g.MainLoop()
 
