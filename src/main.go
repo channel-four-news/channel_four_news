@@ -21,7 +21,6 @@ type UIState struct {
     Boards              BoardsState
     Posts               PostsState
     Threads             ThreadsState
-    Initialized         bool
 }
 
 func (s *UIState) WaitUntilInitialized() {
