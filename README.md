@@ -1,5 +1,7 @@
 # Channel Four News
 
+![](img/comfy.jpg)
+
 ## Build
 Channel Four News is written in Go and uses [go-cui](https://github.com/jroimartin/gocui) for the TUI interface.
 ```
