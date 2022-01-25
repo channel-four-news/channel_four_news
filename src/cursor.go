@@ -4,26 +4,6 @@ import (
     "github.com/jroimartin/gocui"
 )
 
-func move_cursor(v *gocui.View, shift int) error {
-
-    if v == nil {
-        return nil
-    }
-
-    x, y := v.Cursor()
-    ogx, ogy := v.Origin()
-
-    if err := v.SetCursor(x, y+shift); err != nil {
-        if (shift > 0 || ogy > 0) {
-            if err := v.SetOrigin(ogx, ogy+shift); err != nil {
-                return err
-            }
-        }
-    }
-
-    return nil
-}
-
 func cursor_up(g *gocui.Gui, v *gocui.View) error {
 
     if v != nil {

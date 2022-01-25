@@ -25,7 +25,7 @@ func get_static(uri string) ([]byte, error) {
 }
 
 func _refresh_thread(g *gocui.Gui) error {
-    err := _get_thread(g, false)
+    err := update_thread(g, nil)
     if err != nil {
         return err
     }

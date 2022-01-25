@@ -4,7 +4,7 @@ import (
     "fmt"
     "github.com/jroimartin/gocui"
 )
- 
+
 var saved_view string
 
 var (
@@ -29,7 +29,7 @@ func show_help(g *gocui.Gui, v *gocui.View) error {
         if err != gocui.ErrUnknownView {
             return err
         }
-        fmt.Fprintf(hv, HELP_STRING)
+        fmt.Fprintf(hv, "%s", HELP_STRING)
 
         if _, err = g.SetCurrentView("help"); err != nil {
             return err
