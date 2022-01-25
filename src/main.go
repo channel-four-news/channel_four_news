@@ -1,8 +1,6 @@
 package main
 
 /* TODO
- * While you're at it - make sure to nil out fields before
-   reading new data
  * Add an error view
  * Add an auto-update toggle
  * Find a way of caching the data.
